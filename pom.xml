@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Spring Boot 4.0.3 (Válida y publicada) [citation:1] -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.3</version>
+        <version>3.5.11</version>
         <relativePath/>
     </parent>
 
@@ -16,21 +16,30 @@
     <artifactId>DOSW-Library</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>DOSW-Library</name>
-    <description>Proyecto base para clase DOSW Company con Spring Boot 4.0.3</description>
+    <description>Library project for DOSW</description>
 
     <properties>
-        <!-- Java 17 es compatible con Spring Boot 4 [citation:3] -->
-        <java.version>17</java.version>
+        <java.version>21</java.version>
+        <sonar.organization>camilo22prog</sonar.organization>
     </properties>
 
     <dependencies>
-        <!-- Spring Web (MVC) - Nombre correcto y estándar -->
+
+        <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- DevTools (opcional, pero útil para desarrollo) -->
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.42</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -38,32 +47,54 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Starter de pruebas: incluye JUnit 5 (JUnit Jupiter 5.11 con Spring Boot 4.0.3) [citation:3] -->
+        <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+
+            <!-- Spring Boot plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- Plugin de JaCoCo para cobertura de pruebas (obligatorio) -->
+            <!-- Compiler plugin (para Lombok y Java 21) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.42</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- JaCoCo cobertura -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version> <!-- Versión estable y compatible -->
+                <version>0.8.12</version>
                 <executions>
                     <execution>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
                     <execution>
                         <id>report</id>
                         <phase>test</phase>
@@ -74,12 +105,14 @@
                 </executions>
             </plugin>
 
-            <!-- Plugin de SonarQube para análisis de calidad (obligatorio) -->
+            <!-- Sonar -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>4.0.0.4121</version> <!-- Versión actualizada para Spring Boot 4 -->
+                <version>4.0.0.4121</version>
             </plugin>
+
         </plugins>
     </build>
+
 </project>
