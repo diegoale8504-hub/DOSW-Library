@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class LoanService {
@@ -29,8 +30,8 @@ public class LoanService {
      * Lanza BookNoAvaliableException si el libro no está disponible.
      */
     public Loan loanBook(String bookId, String userId) {
-        ValidationUtil.validateNotEmpty(bookId, "ID del libro");
-        ValidationUtil.validateNotEmpty(userId, "ID del usuario");
+        ValidationUtil.requireNonBlank(bookId, "ID del libro");
+        ValidationUtil.requireNonBlank(userId, "ID del usuario"); // <-- FIX
 
         Book book = bookService.getBookById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Libro no encontrado con ID: " + bookId));
@@ -42,9 +43,18 @@ public class LoanService {
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + userId));
 
+        // marcar libro como no disponible
         bookService.updateAvailability(bookId, false);
 
-        Loan loan = new Loan(book, user, LocalDate.now(), null, LoanStatus.ACTIVE);
+        Loan loan = Loan.builder()
+                .id(UUID.randomUUID().toString())
+                .book(book)
+                .user(user)
+                .loanDate(LocalDate.now())
+                .status(LoanStatus.ACTIVE)
+                .returnDate(null)
+                .build();
+
         loans.add(loan);
         return loan;
     }
@@ -53,8 +63,8 @@ public class LoanService {
      * Registra la devolución de un libro.
      */
     public Loan returnBook(String bookId, String userId) {
-        ValidationUtil.validateNotEmpty(bookId, "ID del libro");
-        ValidationUtil.validateNotEmpty(userId, "ID del usuario");
+        ValidationUtil.requireNonBlank(bookId, "ID del libro");
+        ValidationUtil.requireNonBlank(userId, "ID del usuario");
 
         Loan loan = loans.stream()
                 .filter(l -> l.getBook().getId().equals(bookId)
@@ -66,13 +76,11 @@ public class LoanService {
 
         loan.setReturnDate(LocalDate.now());
         loan.setStatus(LoanStatus.RETURNED);
+
         bookService.updateAvailability(bookId, true);
         return loan;
     }
 
-    /**
-     * Retorna todos los préstamos registrados.
-     */
     public List<Loan> getAllLoans() {
         return new ArrayList<>(loans);
     }

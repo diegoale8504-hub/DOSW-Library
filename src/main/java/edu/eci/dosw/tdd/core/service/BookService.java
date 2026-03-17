@@ -32,9 +32,7 @@ public class BookService {
         return new ArrayList<>(books);
     }
 
-    /**
-     * Busca un libro por su ID.
-     */
+
     public Optional<Book> getBookById(String id) {
         ValidationUtil.validateNotEmpty(id, "ID del libro");
         return books.stream()
