@@ -4,7 +4,7 @@ Sistema de gestión de biblioteca desarrollado con **Spring Boot 3** y **Java 21
 
 ---
 
-## 🏗Arquitectura del proyecto
+## Arquitectura del proyecto
 
 ```
 src/
@@ -152,7 +152,7 @@ El dashboard queda disponible en: `https://sonarcloud.io/organizations/camilo22p
 ![img_4.png](img_4.png)
 ---
 
-## 🛠 Tecnologías usadas
+## Tecnologías usadas
 
 - **Java 21**
 - **Spring Boot 3.5**
@@ -163,6 +163,9 @@ El dashboard queda disponible en: `https://sonarcloud.io/organizations/camilo22p
 - **SpringDoc OpenAPI** — documentación Swagger
 
 ---
+
+## Video
+- **Link**: https://youtu.be/DFfIV-GXa3o
 
 ##  Autor
 

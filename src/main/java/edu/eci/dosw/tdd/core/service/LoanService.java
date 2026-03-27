@@ -1,87 +1,106 @@
 package edu.eci.dosw.tdd.core.service;
 
 import edu.eci.dosw.tdd.core.exception.BookNoAvaliableException;
-import edu.eci.dosw.tdd.core.model.Book;
-import edu.eci.dosw.tdd.core.model.Loan;
-import edu.eci.dosw.tdd.core.model.LoanStatus;
-import edu.eci.dosw.tdd.core.model.User;
+import edu.eci.dosw.tdd.core.model.*;
 import edu.eci.dosw.tdd.core.util.ValidationUtil;
+import edu.eci.dosw.tdd.persistence.entity.LoanStatusEntity;
+import edu.eci.dosw.tdd.persistence.mapper.LoanPersistenceMapper;
+import edu.eci.dosw.tdd.persistence.repository.LoanRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class LoanService {
 
     private final BookService bookService;
     private final UserService userService;
-    private final List<Loan> loans = new ArrayList<>();
+    private final LoanRepository loanRepository;
 
-    public LoanService(BookService bookService, UserService userService) {
+    public LoanService(BookService bookService, UserService userService,
+                       LoanRepository loanRepository) {
         this.bookService = bookService;
         this.userService = userService;
+        this.loanRepository = loanRepository;
     }
 
-    /**
-     * Crea un préstamo para un usuario dado un libro.
-     * Lanza BookNoAvaliableException si el libro no está disponible.
-     */
+    @Transactional
     public Loan loanBook(String bookId, String userId) {
         ValidationUtil.requireNonBlank(bookId, "ID del libro");
-        ValidationUtil.requireNonBlank(userId, "ID del usuario"); // <-- FIX
+        ValidationUtil.requireNonBlank(userId, "ID del usuario");
 
         Book book = bookService.getBookById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("Libro no encontrado con ID: " + bookId));
+                .orElseThrow(() -> new IllegalArgumentException("Libro no encontrado: " + bookId));
 
-        if (!book.isAvailable()) {
+        if (book.getAvailableCopies() <= 0)
             throw new BookNoAvaliableException(bookId);
-        }
 
         User user = userService.getUserById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + userId));
 
-        // marcar libro como no disponible
-        bookService.updateAvailability(bookId, false);
+        bookService.decreaseAvailableCopies(bookId);
 
         Loan loan = Loan.builder()
-                .id(UUID.randomUUID().toString())
                 .book(book)
                 .user(user)
                 .loanDate(LocalDate.now())
                 .status(LoanStatus.ACTIVE)
-                .returnDate(null)
                 .build();
 
-        loans.add(loan);
-        return loan;
+        return LoanPersistenceMapper.toDomain(
+                loanRepository.save(LoanPersistenceMapper.toEntity(loan)));
     }
 
-    /**
-     * Registra la devolución de un libro.
-     */
+    @Transactional
     public Loan returnBook(String bookId, String userId) {
         ValidationUtil.requireNonBlank(bookId, "ID del libro");
         ValidationUtil.requireNonBlank(userId, "ID del usuario");
 
-        Loan loan = loans.stream()
-                .filter(l -> l.getBook().getId().equals(bookId)
-                        && l.getUser().getId().equals(userId)
-                        && l.getStatus() == LoanStatus.ACTIVE)
-                .findFirst()
+        var loanEntity = loanRepository
+                .findByBookIdAndUserIdAndStatus(bookId, userId, LoanStatusEntity.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No se encontró un préstamo activo para el libro " + bookId + " y usuario " + userId));
+                        "No hay préstamo activo para ese libro y usuario"));
 
-        loan.setReturnDate(LocalDate.now());
-        loan.setStatus(LoanStatus.RETURNED);
+        loanEntity.setReturnDate(LocalDate.now());
+        loanEntity.setStatus(LoanStatusEntity.RETURNED);
+        loanRepository.save(loanEntity);
 
-        bookService.updateAvailability(bookId, true);
-        return loan;
+        bookService.increaseAvailableCopies(bookId);
+
+        return LoanPersistenceMapper.toDomain(loanEntity);
     }
 
     public List<Loan> getAllLoans() {
-        return new ArrayList<>(loans);
+        return loanRepository.findAll().stream()
+                .map(LoanPersistenceMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    public List<Loan> getLoansByUser(String userId) {
+        return loanRepository.findByUserId(userId).stream()
+                .map(LoanPersistenceMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+
+    public Loan loanBookByUsername(String bookId, String username) {
+        User user = userService.getUserByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        return loanBook(bookId, user.getId());
+    }
+
+    public Loan returnBookByUsername(String bookId, String username) {
+        User user = userService.getUserByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        return returnBook(bookId, user.getId());
+    }
+
+    public List<Loan> getLoansByUsername(String username) {
+        User user = userService.getUserByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        return getLoansByUser(user.getId());
     }
 }

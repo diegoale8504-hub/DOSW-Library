@@ -13,7 +13,8 @@ public final class BookMapper {
                 .id(dto.getId())
                 .title(dto.getTitle())
                 .author(dto.getAuthor())
-                .available(dto.isAvailable())
+                .totalCopies(dto.getTotalCopies())
+                .availableCopies(dto.getAvailableCopies())
                 .build();
     }
 
@@ -23,7 +24,8 @@ public final class BookMapper {
                 .id(book.getId())
                 .title(book.getTitle())
                 .author(book.getAuthor())
-                .available(book.isAvailable())
+                .totalCopies(book.getTotalCopies())
+                .availableCopies(book.getAvailableCopies())
                 .build();
     }
 }

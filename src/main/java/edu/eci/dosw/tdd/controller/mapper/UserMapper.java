@@ -1,6 +1,7 @@
 package edu.eci.dosw.tdd.controller.mapper;
 
 import edu.eci.dosw.tdd.controller.dto.UserDTO;
+import edu.eci.dosw.tdd.core.model.Role;
 import edu.eci.dosw.tdd.core.model.User;
 
 public final class UserMapper {
@@ -12,6 +13,9 @@ public final class UserMapper {
         return User.builder()
                 .id(dto.getId())
                 .name(dto.getName())
+                .username(dto.getUsername())
+                .password(dto.getPassword())
+                .role(dto.getRole() != null ? Role.valueOf(dto.getRole()) : Role.USER)
                 .build();
     }
 
@@ -20,6 +24,8 @@ public final class UserMapper {
         return UserDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
+                .username(user.getUsername())
+                .role(user.getRole() != null ? user.getRole().name() : null)
                 .build();
     }
 }
