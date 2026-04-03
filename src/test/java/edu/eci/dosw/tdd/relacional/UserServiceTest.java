@@ -1,11 +1,11 @@
-package edu.eci.dosw.tdd;
+package edu.eci.dosw.tdd.relacional;
 
 import edu.eci.dosw.tdd.core.model.Role;
 import edu.eci.dosw.tdd.core.model.User;
 import edu.eci.dosw.tdd.core.service.UserService;
-import edu.eci.dosw.tdd.persistence.entity.RoleEntity;
-import edu.eci.dosw.tdd.persistence.entity.UserEntity;
-import edu.eci.dosw.tdd.persistence.repository.UserRepository;
+import edu.eci.dosw.tdd.persistence.relacional.entity.RoleEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.UserEntity;
+import edu.eci.dosw.tdd.persistence.relacional.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

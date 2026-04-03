@@ -1,9 +1,9 @@
-package edu.eci.dosw.tdd;
+package edu.eci.dosw.tdd.relacional;
 
 import edu.eci.dosw.tdd.core.model.Book;
 import edu.eci.dosw.tdd.core.service.BookService;
-import edu.eci.dosw.tdd.persistence.entity.BookEntity;
-import edu.eci.dosw.tdd.persistence.repository.BookRepository;
+import edu.eci.dosw.tdd.persistence.relacional.entity.BookEntity;
+import edu.eci.dosw.tdd.persistence.relacional.repository.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

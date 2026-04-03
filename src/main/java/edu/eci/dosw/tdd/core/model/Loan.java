@@ -1,11 +1,9 @@
 package edu.eci.dosw.tdd.core.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,4 +16,7 @@ public class Loan {
     private LocalDate loanDate;
     private LoanStatus status;
     private LocalDate returnDate;
+
+    @Builder.Default
+    private List<LoanHistoryEntry> history = new ArrayList<>();
 }

@@ -1,4 +1,4 @@
-package edu.eci.dosw.tdd.persistence.entity;
+package edu.eci.dosw.tdd.persistence.relacional.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,4 +33,8 @@ public class LoanEntity {
 
     @Column(name = "return_date")
     private LocalDate returnDate;
+
+    @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<LoanHistoryEntity> history = new java.util.ArrayList<>();
 }

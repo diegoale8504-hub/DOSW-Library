@@ -1,11 +1,11 @@
-package edu.eci.dosw.tdd.persistence.mapper;
+package edu.eci.dosw.tdd.persistence.relacional.mapper;
 
 import edu.eci.dosw.tdd.core.model.Loan;
 import edu.eci.dosw.tdd.core.model.LoanStatus;
-import edu.eci.dosw.tdd.persistence.entity.LoanEntity;
-import edu.eci.dosw.tdd.persistence.entity.LoanStatusEntity;
-import edu.eci.dosw.tdd.persistence.entity.BookEntity;
-import edu.eci.dosw.tdd.persistence.entity.UserEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.LoanEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.LoanStatusEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.BookEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.UserEntity;
 
 public final class LoanPersistenceMapper {
 

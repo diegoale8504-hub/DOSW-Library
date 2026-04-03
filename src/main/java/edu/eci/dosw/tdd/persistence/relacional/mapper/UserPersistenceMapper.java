@@ -1,9 +1,9 @@
-package edu.eci.dosw.tdd.persistence.mapper;
+package edu.eci.dosw.tdd.persistence.relacional.mapper;
 
 import edu.eci.dosw.tdd.core.model.User;
 import edu.eci.dosw.tdd.core.model.Role;
-import edu.eci.dosw.tdd.persistence.entity.RoleEntity;
-import edu.eci.dosw.tdd.persistence.entity.UserEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.RoleEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.UserEntity;
 
 public final class UserPersistenceMapper {
 

@@ -2,30 +2,24 @@ package edu.eci.dosw.tdd.core.service;
 
 import edu.eci.dosw.tdd.core.exception.BookNoAvaliableException;
 import edu.eci.dosw.tdd.core.model.*;
+import edu.eci.dosw.tdd.core.port.LoanRepositoryPort;
 import edu.eci.dosw.tdd.core.util.ValidationUtil;
-import edu.eci.dosw.tdd.persistence.entity.LoanStatusEntity;
-import edu.eci.dosw.tdd.persistence.mapper.LoanPersistenceMapper;
-import edu.eci.dosw.tdd.persistence.repository.LoanRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LoanService {
 
+    private final LoanRepositoryPort loanRepository;
     private final BookService bookService;
     private final UserService userService;
-    private final LoanRepository loanRepository;
-
-    public LoanService(BookService bookService, UserService userService,
-                       LoanRepository loanRepository) {
-        this.bookService = bookService;
-        this.userService = userService;
-        this.loanRepository = loanRepository;
-    }
 
     @Transactional
     public Loan loanBook(String bookId, String userId) {
@@ -43,15 +37,21 @@ public class LoanService {
 
         bookService.decreaseAvailableCopies(bookId);
 
+        List<LoanHistoryEntry> history = new ArrayList<>();
+        history.add(LoanHistoryEntry.builder()
+                .status(LoanStatus.ACTIVE.name())
+                .executedAt(LocalDateTime.now())
+                .build());
+
         Loan loan = Loan.builder()
                 .book(book)
                 .user(user)
                 .loanDate(LocalDate.now())
                 .status(LoanStatus.ACTIVE)
+                .history(history)
                 .build();
 
-        return LoanPersistenceMapper.toDomain(
-                loanRepository.save(LoanPersistenceMapper.toEntity(loan)));
+        return loanRepository.save(loan);
     }
 
     @Transactional
@@ -59,32 +59,26 @@ public class LoanService {
         ValidationUtil.requireNonBlank(bookId, "ID del libro");
         ValidationUtil.requireNonBlank(userId, "ID del usuario");
 
-        var loanEntity = loanRepository
-                .findByBookIdAndUserIdAndStatus(bookId, userId, LoanStatusEntity.ACTIVE)
+        loanRepository.findActiveLoanByBookAndUser(bookId, userId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No hay préstamo activo para ese libro y usuario"));
 
-        loanEntity.setReturnDate(LocalDate.now());
-        loanEntity.setStatus(LoanStatusEntity.RETURNED);
-        loanRepository.save(loanEntity);
-
+        loanRepository.markAsReturned(bookId, userId);
         bookService.increaseAvailableCopies(bookId);
 
-        return LoanPersistenceMapper.toDomain(loanEntity);
+        return loanRepository.findActiveLoanByBookAndUser(bookId, userId)
+                .orElse(loanRepository.findAll().stream()
+                        .filter(l -> l.getStatus() == LoanStatus.RETURNED)
+                        .findFirst().orElseThrow());
     }
 
     public List<Loan> getAllLoans() {
-        return loanRepository.findAll().stream()
-                .map(LoanPersistenceMapper::toDomain)
-                .collect(Collectors.toList());
+        return loanRepository.findAll();
     }
 
     public List<Loan> getLoansByUser(String userId) {
-        return loanRepository.findByUserId(userId).stream()
-                .map(LoanPersistenceMapper::toDomain)
-                .collect(Collectors.toList());
+        return loanRepository.findByUserId(userId);
     }
-
 
     public Loan loanBookByUsername(String bookId, String username) {
         User user = userService.getUserByUsername(username)

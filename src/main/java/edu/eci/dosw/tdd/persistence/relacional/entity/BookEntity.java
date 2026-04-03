@@ -1,4 +1,4 @@
-package edu.eci.dosw.tdd.persistence.entity;
+package edu.eci.dosw.tdd.persistence.relacional.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,4 +26,7 @@ public class BookEntity {
 
     @Column(name = "available_copies", nullable = false)
     private int availableCopies;
+
+    @Column(name = "loaned_copies")
+    private int loanedCopies;
 }

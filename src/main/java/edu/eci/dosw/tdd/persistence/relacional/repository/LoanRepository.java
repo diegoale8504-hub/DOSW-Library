@@ -1,7 +1,7 @@
-package edu.eci.dosw.tdd.persistence.repository;
+package edu.eci.dosw.tdd.persistence.relacional.repository;
 
-import edu.eci.dosw.tdd.persistence.entity.LoanEntity;
-import edu.eci.dosw.tdd.persistence.entity.LoanStatusEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.LoanEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.LoanStatusEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

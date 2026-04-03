@@ -1,28 +1,25 @@
 package edu.eci.dosw.tdd.core.service;
 
+import edu.eci.dosw.tdd.core.model.MembershipType;
 import edu.eci.dosw.tdd.core.model.Role;
 import edu.eci.dosw.tdd.core.model.User;
+import edu.eci.dosw.tdd.core.port.UserRepositoryPort;
 import edu.eci.dosw.tdd.core.util.ValidationUtil;
-import edu.eci.dosw.tdd.persistence.mapper.UserPersistenceMapper;
-import edu.eci.dosw.tdd.persistence.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserRepositoryPort userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Transactional
     public User registerUser(User user) {
@@ -36,28 +33,30 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getRole() == null) user.setRole(Role.USER);
+        if (user.getMembershipType() == null) user.setMembershipType(MembershipType.STANDARD);
+        if (user.getCreatedAt() == null) user.setCreatedAt(LocalDate.now());
 
-        return UserPersistenceMapper.toDomain(
-                userRepository.save(UserPersistenceMapper.toEntity(user)));
+        return userRepository.save(user);
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(UserPersistenceMapper::toDomain)
-                .collect(Collectors.toList());
+        return userRepository.findAll();
     }
 
     public Optional<User> getUserById(String id) {
-        return userRepository.findById(id).map(UserPersistenceMapper::toDomain);
+        return userRepository.findById(id);
     }
 
     public Optional<User> getUserByUsername(String username) {
-        return userRepository.findByUsername(username).map(UserPersistenceMapper::toDomain);
+        return userRepository.findByUsername(username);
     }
 
     @Transactional
     public void deleteUser(String id) {
-        if (!userRepository.existsById(id))
+        if (!userRepository.existsByUsername(
+                userRepository.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + id))
+                        .getUsername()))
             throw new IllegalArgumentException("Usuario no encontrado: " + id);
         userRepository.deleteById(id);
     }

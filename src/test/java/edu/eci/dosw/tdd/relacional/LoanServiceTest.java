@@ -1,16 +1,16 @@
-package edu.eci.dosw.tdd;
+package edu.eci.dosw.tdd.relacional;
 
 import edu.eci.dosw.tdd.core.exception.BookNoAvaliableException;
 import edu.eci.dosw.tdd.core.model.*;
 import edu.eci.dosw.tdd.core.service.BookService;
 import edu.eci.dosw.tdd.core.service.LoanService;
 import edu.eci.dosw.tdd.core.service.UserService;
-import edu.eci.dosw.tdd.persistence.entity.BookEntity;
-import edu.eci.dosw.tdd.persistence.entity.LoanEntity;
-import edu.eci.dosw.tdd.persistence.entity.LoanStatusEntity;
-import edu.eci.dosw.tdd.persistence.entity.UserEntity;
-import edu.eci.dosw.tdd.persistence.entity.RoleEntity;
-import edu.eci.dosw.tdd.persistence.repository.LoanRepository;
+import edu.eci.dosw.tdd.persistence.relacional.entity.BookEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.LoanEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.LoanStatusEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.UserEntity;
+import edu.eci.dosw.tdd.persistence.relacional.entity.RoleEntity;
+import edu.eci.dosw.tdd.persistence.relacional.repository.LoanRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
