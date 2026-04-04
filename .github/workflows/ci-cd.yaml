@@ -46,7 +46,7 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Ejecutar pruebas (fase verify)
-        run: ./mvnw verify -DSPRING_DATA_MONGODB_URI=${{ secrets.MONGODB_URI }} -Dspring.profiles.active=mongo
+        run: ./mvnw verify -DSPRING_DATA_MONGODB_URI="${{ secrets.MONGODB_URI }}" -Dspring.profiles.active=mongo
 
   analysis:
     name: Analysis
