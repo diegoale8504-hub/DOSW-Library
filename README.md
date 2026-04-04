@@ -170,4 +170,4 @@ El dashboard queda disponible en: `https://sonarcloud.io/organizations/camilo22p
 ##  Autor
 
 Desarrollado por **Diego** — Escuela Colombiana de Ingeniería Julio Garavito  
-Curso: DOSW — Diseño y Construcción de Software
+Curso: DOSW — Diseño y Construcción de Software.
