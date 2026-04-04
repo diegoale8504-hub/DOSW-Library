@@ -72,5 +72,18 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v3
 
-      - name: Deploy (en construcción)
-        run: echo "En construcción ..."
+      - name: Configurar Java 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build JAR
+        run: mvn package -DskipTests
+
+      - name: Deploy a Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'dosw-library-diego'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: target/*.jar
