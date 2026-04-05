@@ -67,14 +67,10 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Análisis estático con SonarCloud
-        run: |
-          ./mvnw verify sonar:sonar \
-            -Dsonar.projectKey=diegoale8504-hub_DOSW-Library \
-            -Dsonar.organization=diegoale8504-hub \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -DSPRING_DATA_MONGODB_URI=${{ secrets.MONGODB_URI }} \
-            -Dspring.profiles.active=mongo
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        run: ./mvnw verify sonar:sonar -Dsonar.projectKey=diegoale8504-hub_DOSW-Library -Dsonar.organization=diegoale8504-hub -DSPRING_DATA_MONGODB_URI="${{ secrets.MONGODB_URI }}" -Dspring.profiles.active=mongo
 
   deploy:
     name: Deploy
