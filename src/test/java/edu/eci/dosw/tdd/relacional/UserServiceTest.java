@@ -2,10 +2,8 @@ package edu.eci.dosw.tdd.relacional;
 
 import edu.eci.dosw.tdd.core.model.Role;
 import edu.eci.dosw.tdd.core.model.User;
+import edu.eci.dosw.tdd.core.port.UserRepositoryPort;
 import edu.eci.dosw.tdd.core.service.UserService;
-import edu.eci.dosw.tdd.persistence.relacional.entity.RoleEntity;
-import edu.eci.dosw.tdd.persistence.relacional.entity.UserEntity;
-import edu.eci.dosw.tdd.persistence.relacional.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +23,7 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserRepositoryPort userRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -33,46 +31,29 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
-    private UserEntity userEntity;
     private User user;
 
     @BeforeEach
     void setUp() {
-        userEntity = UserEntity.builder()
-                .id("1")
-                .name("Diego")
-                .username("diego123")
-                .password("hashed_password")
-                .role(RoleEntity.USER)
-                .build();
-
         user = User.builder()
-                .id("1")
-                .name("Diego")
-                .username("diego123")
-                .password("pass123")
-                .role(Role.USER)
-                .build();
+                .id("1").name("Diego").username("diego123")
+                .password("pass123").role(Role.USER).build();
     }
 
     @Test
     void registerUser_shouldSaveAndReturnUser() {
         when(userRepository.existsByUsername("diego123")).thenReturn(false);
         when(passwordEncoder.encode("pass123")).thenReturn("hashed_password");
-        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
-
+        when(userRepository.save(any(User.class))).thenReturn(user);
         User result = userService.registerUser(user);
-
         assertNotNull(result);
         assertEquals("Diego", result.getName());
-        assertEquals("diego123", result.getUsername());
-        verify(userRepository).save(any(UserEntity.class));
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
     void registerUser_shouldThrow_whenUsernameAlreadyExists() {
         when(userRepository.existsByUsername("diego123")).thenReturn(true);
-
         assertThrows(IllegalArgumentException.class,
                 () -> userService.registerUser(user));
         verify(userRepository, never()).save(any());
@@ -81,27 +62,22 @@ class UserServiceTest {
     @Test
     void registerUser_shouldThrow_whenNameIsBlank() {
         user.setName("");
-
         assertThrows(IllegalArgumentException.class,
                 () -> userService.registerUser(user));
     }
 
     @Test
     void getAllUsers_shouldReturnList() {
-        when(userRepository.findAll()).thenReturn(List.of(userEntity));
-
+        when(userRepository.findAll()).thenReturn(List.of(user));
         List<User> result = userService.getAllUsers();
-
         assertEquals(1, result.size());
         assertEquals("Diego", result.get(0).getName());
     }
 
     @Test
     void getUserById_shouldReturnUser_whenExists() {
-        when(userRepository.findById("1")).thenReturn(Optional.of(userEntity));
-
+        when(userRepository.findById("1")).thenReturn(Optional.of(user));
         Optional<User> result = userService.getUserById("1");
-
         assertTrue(result.isPresent());
         assertEquals("diego123", result.get().getUsername());
     }
@@ -109,20 +85,55 @@ class UserServiceTest {
     @Test
     void getUserById_shouldReturnEmpty_whenNotExists() {
         when(userRepository.findById("999")).thenReturn(Optional.empty());
-
-        Optional<User> result = userService.getUserById("999");
-
-        assertTrue(result.isEmpty());
+        assertTrue(userService.getUserById("999").isEmpty());
     }
 
     @Test
     void getUserByUsername_shouldReturnUser_whenExists() {
-        when(userRepository.findByUsername("diego123"))
-                .thenReturn(Optional.of(userEntity));
-
+        when(userRepository.findByUsername("diego123")).thenReturn(Optional.of(user));
         Optional<User> result = userService.getUserByUsername("diego123");
-
         assertTrue(result.isPresent());
         assertEquals("diego123", result.get().getUsername());
     }
+
+    @Test
+    void deleteUser_shouldDelete_whenExists() {
+        when(userRepository.findById("1")).thenReturn(Optional.of(user));
+        when(userRepository.existsByUsername("diego123")).thenReturn(true);
+        doNothing().when(userRepository).deleteById("1");
+        userService.deleteUser("1");
+        verify(userRepository).deleteById("1");
+    }
+
+    @Test
+    void deleteUser_shouldThrow_whenNotFound() {
+        when(userRepository.findById("999")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.deleteUser("999"));
+    }
+
+    @Test
+    void registerUser_shouldSetDefaultRole_whenNull() {
+        user.setRole(null);
+        when(userRepository.existsByUsername("diego123")).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn("hashed");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        User result = userService.registerUser(user);
+        assertNotNull(result);
+    }
+
+    @Test
+    void registerUser_shouldThrow_whenUsernameBlank() {
+        user.setUsername("");
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.registerUser(user));
+    }
+
+    @Test
+    void registerUser_shouldThrow_whenPasswordBlank() {
+        user.setPassword("");
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.registerUser(user));
+    }
+
 }

@@ -169,4 +169,64 @@ class LoanServiceTest {
         List<Loan> result = loanService.getAllLoans();
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void getLoansByUser_shouldReturnList() {
+        when(loanRepository.findByUserId("user-1")).thenReturn(List.of(loan));
+        List<Loan> result = loanService.getLoansByUser("user-1");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void loanBookByUsername_shouldCreateLoan() {
+        when(userService.getUserByUsername("diego123")).thenReturn(Optional.of(user));
+        when(bookService.getBookById("book-1")).thenReturn(Optional.of(book));
+        when(userService.getUserById("user-1")).thenReturn(Optional.of(user));
+        doNothing().when(bookService).decreaseAvailableCopies("book-1");
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        Loan result = loanService.loanBookByUsername("book-1", "diego123");
+        assertNotNull(result);
+    }
+
+    @Test
+    void loanBookByUsername_shouldThrow_whenUserNotFound() {
+        when(userService.getUserByUsername("noexiste")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class,
+                () -> loanService.loanBookByUsername("book-1", "noexiste"));
+    }
+
+    @Test
+    void returnBookByUsername_shouldReturn() {
+        when(userService.getUserByUsername("diego123")).thenReturn(Optional.of(user));
+        when(loanRepository.findActiveLoanByBookAndUser("book-1", "user-1"))
+                .thenReturn(Optional.of(loan));
+        doNothing().when(loanRepository).markAsReturned("book-1", "user-1");
+        doNothing().when(bookService).increaseAvailableCopies("book-1");
+        when(loanRepository.findAll()).thenReturn(List.of(
+                Loan.builder().id("loan-1").status(LoanStatus.RETURNED).build()));
+        Loan result = loanService.returnBookByUsername("book-1", "diego123");
+        assertNotNull(result);
+    }
+
+    @Test
+    void returnBookByUsername_shouldThrow_whenUserNotFound() {
+        when(userService.getUserByUsername("noexiste")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class,
+                () -> loanService.returnBookByUsername("book-1", "noexiste"));
+    }
+
+    @Test
+    void getLoansByUsername_shouldReturnList() {
+        when(userService.getUserByUsername("diego123")).thenReturn(Optional.of(user));
+        when(loanRepository.findByUserId("user-1")).thenReturn(List.of(loan));
+        List<Loan> result = loanService.getLoansByUsername("diego123");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getLoansByUsername_shouldThrow_whenUserNotFound() {
+        when(userService.getUserByUsername("noexiste")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class,
+                () -> loanService.getLoansByUsername("noexiste"));
+    }
 }
