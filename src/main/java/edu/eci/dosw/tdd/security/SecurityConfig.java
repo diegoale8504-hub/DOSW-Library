@@ -38,7 +38,6 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Manejador cuando no hay autenticación
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -54,7 +53,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
-                                "/auth/register-admin",
+                                "/auth/register",
+                                "/auth/register-librarian",  // LIBRARIAN se registra a sí mismo
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs",
@@ -62,18 +62,27 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // Libros
                         .requestMatchers(HttpMethod.POST, "/api/books").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/api/books/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/books").authenticated()
+
+                        // Usuarios — solo LIBRARIAN gestiona otros usuarios
                         .requestMatchers(HttpMethod.POST, "/api/users").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("LIBRARIAN")
+
+                        // Préstamos — USER solicita, LIBRARIAN acepta y recibe devoluciones
+                        .requestMatchers(HttpMethod.POST, "/api/loans/request").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/loans/my").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/loans/pending").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/loans/*/accept").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/loans/return").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/api/loans").hasRole("LIBRARIAN")
-                        .requestMatchers(HttpMethod.POST, "/api/loans").hasRole("USER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/loans/return").hasRole("USER")
-                        .requestMatchers("/api/loans/my").hasRole("USER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -104,5 +113,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
 }

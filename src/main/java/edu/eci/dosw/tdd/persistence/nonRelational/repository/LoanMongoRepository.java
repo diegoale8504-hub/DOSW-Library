@@ -12,6 +12,7 @@ public interface LoanMongoRepository
 
     List<LoanDocument> findByUserId(String userId);
     List<LoanDocument> findByStatus(String status);
+    List<LoanDocument> findByUserIdAndStatus(String userId, String status);
     Optional<LoanDocument> findByIdAndUserId(String id, String userId);
     Optional<LoanDocument> findByBookSnapshot_BookIdAndUserIdAndStatus(
             String bookId, String userId, String status);

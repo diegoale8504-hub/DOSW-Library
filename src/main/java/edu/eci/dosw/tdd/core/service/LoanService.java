@@ -21,8 +21,11 @@ public class LoanService {
     private final BookService bookService;
     private final UserService userService;
 
+    /**
+     * El USER solicita un préstamo → queda en estado PENDING.
+     */
     @Transactional
-    public Loan loanBook(String bookId, String userId) {
+    public Loan requestLoan(String bookId, String userId) {
         ValidationUtil.requireNonBlank(bookId, "ID del libro");
         ValidationUtil.requireNonBlank(userId, "ID del usuario");
 
@@ -35,11 +38,9 @@ public class LoanService {
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + userId));
 
-        bookService.decreaseAvailableCopies(bookId);
-
         List<LoanHistoryEntry> history = new ArrayList<>();
         history.add(LoanHistoryEntry.builder()
-                .status(LoanStatus.ACTIVE.name())
+                .status(LoanStatus.PENDING.name())
                 .executedAt(LocalDateTime.now())
                 .build());
 
@@ -47,43 +48,91 @@ public class LoanService {
                 .book(book)
                 .user(user)
                 .loanDate(LocalDate.now())
-                .status(LoanStatus.ACTIVE)
+                .status(LoanStatus.PENDING)
                 .history(history)
                 .build();
 
         return loanRepository.save(loan);
     }
 
+    /**
+     * El LIBRARIAN acepta el préstamo → PENDING → ACCEPTED.
+     * Aquí se descuentan las copias disponibles.
+     */
+    @Transactional
+    public Loan acceptLoan(String loanId) {
+        ValidationUtil.requireNonBlank(loanId, "ID del préstamo");
+
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new IllegalArgumentException("Préstamo no encontrado: " + loanId));
+
+        if (loan.getStatus() != LoanStatus.PENDING)
+            throw new IllegalStateException("Solo se pueden aceptar préstamos en estado PENDING");
+
+        bookService.decreaseAvailableCopies(loan.getBook().getId());
+
+        loan.setStatus(LoanStatus.ACCEPTED);
+        loan.getHistory().add(LoanHistoryEntry.builder()
+                .status(LoanStatus.ACCEPTED.name())
+                .executedAt(LocalDateTime.now())
+                .build());
+
+        return loanRepository.save(loan);
+    }
+
+    /**
+     * El LIBRARIAN registra la devolución → ACCEPTED → RETURNED.
+     */
     @Transactional
     public Loan returnBook(String bookId, String userId) {
         ValidationUtil.requireNonBlank(bookId, "ID del libro");
         ValidationUtil.requireNonBlank(userId, "ID del usuario");
 
-        loanRepository.findActiveLoanByBookAndUser(bookId, userId)
+        Loan loan = loanRepository.findAcceptedLoanByBookAndUser(bookId, userId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No hay préstamo activo para ese libro y usuario"));
+                        "No hay préstamo aceptado activo para ese libro y usuario"));
 
         loanRepository.markAsReturned(bookId, userId);
         bookService.increaseAvailableCopies(bookId);
 
-        return loanRepository.findActiveLoanByBookAndUser(bookId, userId)
-                .orElse(loanRepository.findAll().stream()
-                        .filter(l -> l.getStatus() == LoanStatus.RETURNED)
-                        .findFirst().orElseThrow());
+        loan.setStatus(LoanStatus.RETURNED);
+        loan.setReturnDate(LocalDate.now());
+        loan.getHistory().add(LoanHistoryEntry.builder()
+                .status(LoanStatus.RETURNED.name())
+                .executedAt(LocalDateTime.now())
+                .build());
+
+        return loanRepository.save(loan);
     }
 
     public List<Loan> getAllLoans() {
         return loanRepository.findAll();
     }
 
+    public List<Loan> getPendingLoans() {
+        return loanRepository.findByStatus(LoanStatus.PENDING);
+    }
+
     public List<Loan> getLoansByUser(String userId) {
         return loanRepository.findByUserId(userId);
     }
 
-    public Loan loanBookByUsername(String bookId, String username) {
+    /**
+     * LIBRARIAN filtra préstamos por userId, con status opcional.
+     * Si status es null devuelve todos los préstamos de ese usuario.
+     */
+    public List<Loan> getLoansByUserIdFilter(String userId, LoanStatus status) {
+        ValidationUtil.requireNonBlank(userId, "ID del usuario");
+        if (status != null) {
+            return loanRepository.findByUserIdAndStatus(userId, status);
+        }
+        return loanRepository.findByUserId(userId);
+    }
+
+    public Loan requestLoanByUsername(String bookId, String username) {
         User user = userService.getUserByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-        return loanBook(bookId, user.getId());
+        return requestLoan(bookId, user.getId());
     }
 
     public Loan returnBookByUsername(String bookId, String username) {

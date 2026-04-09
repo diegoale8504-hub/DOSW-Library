@@ -10,7 +10,10 @@ import java.time.LocalDate;
 public class LoanDTO {
     private String id;
     private String bookId;
+    private String bookTitle;
+    private String bookAuthor;
     private String userId;
+    private String username;
     private LocalDate loanDate;
     private String status;
     private LocalDate returnDate;

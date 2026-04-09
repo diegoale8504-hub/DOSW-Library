@@ -1,6 +1,8 @@
 package edu.eci.dosw.tdd.config;
 
 import edu.eci.dosw.tdd.core.exception.BookNoAvaliableException;
+import edu.eci.dosw.tdd.core.exception.LoanLimitExceededException;
+import edu.eci.dosw.tdd.core.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +18,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BookNoAvaliableException.class)
     public ResponseEntity<Map<String, String>> handleBookNotAvailable(BookNoAvaliableException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(LoanLimitExceededException.class)
+    public ResponseEntity<Map<String, String>> handleLoanLimit(LoanLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
 

@@ -9,7 +9,8 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<LoanEntity, String> {
     List<LoanEntity> findByUserId(String userId);
+    List<LoanEntity> findByUserIdAndStatus(String userId, LoanStatusEntity status);
+    List<LoanEntity> findByStatus(LoanStatusEntity status);
     Optional<LoanEntity> findByBookIdAndUserIdAndStatus(
             String bookId, String userId, LoanStatusEntity status);
-    List<LoanEntity> findByStatus(LoanStatusEntity status);
 }
