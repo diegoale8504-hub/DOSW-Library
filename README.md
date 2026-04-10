@@ -147,7 +147,7 @@ El reporte queda en: `target/site/jacoco/index.html`
 mvn sonar:sonar -Dsonar.token=TU_TOKEN_AQUI
 ```
 
-El dashboard queda disponible en: `https://sonarcloud.io/organizations/camilo22prog`
+El dashboard queda disponible en: `https://sonarcloud.io/organizations/diegoale8504-hub/projects`
 
 ### Resultado del análisis
 
