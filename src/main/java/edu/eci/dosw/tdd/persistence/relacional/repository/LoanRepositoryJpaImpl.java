@@ -48,14 +48,36 @@ public class LoanRepositoryJpaImpl implements LoanRepositoryPort {
     }
 
     @Override
+    public List<Loan> findByUserIdAndStatus(String userId, LoanStatus status) {
+        LoanStatusEntity statusEntity = LoanStatusEntity.valueOf(status.name());
+        return repository.findByUserIdAndStatus(userId, statusEntity).stream()
+                .map(LoanPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Loan> findByStatus(LoanStatus status) {
+        LoanStatusEntity statusEntity = LoanStatusEntity.valueOf(status.name());
+        return repository.findByStatus(statusEntity).stream()
+                .map(LoanPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<Loan> findActiveLoanByBookAndUser(String bookId, String userId) {
         return repository.findByBookIdAndUserIdAndStatus(bookId, userId, LoanStatusEntity.ACTIVE)
                 .map(LoanPersistenceMapper::toDomain);
     }
 
     @Override
+    public Optional<Loan> findAcceptedLoanByBookAndUser(String bookId, String userId) {
+        return repository.findByBookIdAndUserIdAndStatus(bookId, userId, LoanStatusEntity.ACCEPTED)
+                .map(LoanPersistenceMapper::toDomain);
+    }
+
+    @Override
     public void markAsReturned(String bookId, String userId) {
-        repository.findByBookIdAndUserIdAndStatus(bookId, userId, LoanStatusEntity.ACTIVE)
+        repository.findByBookIdAndUserIdAndStatus(bookId, userId, LoanStatusEntity.ACCEPTED)
                 .ifPresent(entity -> {
                     entity.setStatus(LoanStatusEntity.RETURNED);
                     entity.setReturnDate(LocalDate.now());

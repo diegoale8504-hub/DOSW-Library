@@ -25,13 +25,15 @@ src/
 
 ### Diagrama de Clases
 
-![img.png](img.png)
-
+![img.png](docs/imagenes/img.png)
+**Actualizado**
+![img_5.png](docs/imagenes/img_5.png)
+![img_6.png](docs/imagenes/img_6.png)
 
 
 ### Diagrama de Arquitectura de Capas
 
-![img_1.png](img_1.png)
+![img_1.png](docs/imagenes/img_1.png)
 
 ```
 ![Diagrama de Capas](docs/diagrams/layer-diagram.png)
@@ -118,7 +120,7 @@ mvn test
 
 ### Resultado de las pruebas
 
-![img_2.png](img_2.png)
+![img_2.png](docs/imagenes/img_2.png)
 
 ---
 
@@ -134,7 +136,7 @@ El reporte queda en: `target/site/jacoco/index.html`
 
 ### Resultado de cobertura
 
-![img_3.png](img_3.png)
+![img_3.png](docs/imagenes/img_3.png)
 ---
 
 ##  Análisis estático — SonarCloud
@@ -145,11 +147,11 @@ El reporte queda en: `target/site/jacoco/index.html`
 mvn sonar:sonar -Dsonar.token=TU_TOKEN_AQUI
 ```
 
-El dashboard queda disponible en: `https://sonarcloud.io/organizations/camilo22prog`
+El dashboard queda disponible en: `https://sonarcloud.io/organizations/diegoale8504-hub/projects`
 
 ### Resultado del análisis
 
-![img_4.png](img_4.png)
+![img_4.png](docs/imagenes/img_4.png)
 ---
 
 ## Tecnologías usadas
@@ -163,10 +165,14 @@ El dashboard queda disponible en: `https://sonarcloud.io/organizations/camilo22p
 - **SpringDoc OpenAPI** — documentación Swagger
 
 ---
-
+## Link de azure
+- https://portal.azure.com/?Microsoft_Azure_Education_correlationId=57bd0141-4f3a-4861-8675-54a6fc733b9b&Microsoft_Azure_Education_newA4E=true&Microsoft_Azure_Education_asoSubGuid=fa4ef17f-f982-4f41-ab99-50a091f1d633&feature.tokencaching=true&feature.internalgraphapiversion=true#@pruebacorreoescuelaingeduco.onmicrosoft.com/resource/subscriptions/fa4ef17f-f982-4f41-ab99-50a091f1d633/resourcegroups/dosw-library-rg/providers/Microsoft.Web/sites/dosw-library-diego/appServices
 ## Video
 - **Link**: https://youtu.be/DFfIV-GXa3o
-
+- **Link video de pruba swagger local**: https://youtu.be/ZZkQJJOB73k
+- ¨¨Link video de prueba Azure**: https://youtu.be/HHen0f-YgGc
+## Link del documento de alto nivel
+- https://pruebacorreoescuelaingeduco-my.sharepoint.com/:w:/g/personal/diego_rozo-g_mail_escuelaing_edu_co/IQCAsL36al59QK5lLwm-fvqDATu8KZfoiLXScAb_99gq9Pg?e=F4iyJO
 ##  Autor
 
 Desarrollado por **Diego** — Escuela Colombiana de Ingeniería Julio Garavito  

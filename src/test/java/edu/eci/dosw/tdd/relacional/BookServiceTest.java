@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,8 @@ class BookServiceTest {
                 .totalCopies(5).availableCopies(5).build();
     }
 
+    // ===== addBook =====
+
     @Test
     void addBook_shouldSaveAndReturnBook() {
         when(bookRepository.save(any(Book.class))).thenReturn(book);
@@ -42,6 +45,20 @@ class BookServiceTest {
         assertNotNull(result);
         assertEquals("Clean Code", result.getTitle());
         verify(bookRepository).save(any(Book.class));
+    }
+
+    @Test
+    void addBook_shouldThrowWhenTitleIsBlank() {
+        book.setTitle("");
+        assertThrows(IllegalArgumentException.class, () -> bookService.addBook(book));
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    void addBook_shouldThrowWhenAuthorIsBlank() {
+        book.setAuthor("");
+        assertThrows(IllegalArgumentException.class, () -> bookService.addBook(book));
+        verify(bookRepository, never()).save(any());
     }
 
     @Test
@@ -59,12 +76,42 @@ class BookServiceTest {
     }
 
     @Test
+    void addBook_shouldSetAddedToCatalogDate_whenNull() {
+        book.setAddedToCatalogDate(null);
+        book.setAvailabilityStatus(null);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+        Book result = bookService.addBook(book);
+        assertNotNull(result);
+        verify(bookRepository).save(any(Book.class));
+    }
+
+    @Test
+    void addBook_shouldNotOverrideDate_whenAlreadySet() {
+        book.setAddedToCatalogDate(LocalDate.of(2024, 1, 1));
+        book.setAvailabilityStatus("AVAILABLE");
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+        Book result = bookService.addBook(book);
+        assertNotNull(result);
+    }
+
+    // ===== getAllBooks / getAvailableBooks =====
+
+    @Test
     void getAllBooks_shouldReturnList() {
         when(bookRepository.findAll()).thenReturn(List.of(book));
         List<Book> result = bookService.getAllBooks();
         assertEquals(1, result.size());
         assertEquals("Clean Code", result.get(0).getTitle());
     }
+
+    @Test
+    void getAvailableBooks_shouldReturnList() {
+        when(bookRepository.findAvailable()).thenReturn(List.of(book));
+        List<Book> result = bookService.getAvailableBooks();
+        assertEquals(1, result.size());
+    }
+
+    // ===== getBookById =====
 
     @Test
     void getBookById_shouldReturnBook_whenExists() {
@@ -79,6 +126,51 @@ class BookServiceTest {
         when(bookRepository.findById("999")).thenReturn(Optional.empty());
         assertTrue(bookService.getBookById("999").isEmpty());
     }
+
+    // ===== updateBook =====
+
+    @Test
+    void updateBook_shouldUpdateAndReturn() {
+        when(bookRepository.findById("1")).thenReturn(Optional.of(book));
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+        Book result = bookService.updateBook("1", book);
+        assertNotNull(result);
+        verify(bookRepository).save(any(Book.class));
+    }
+
+    @Test
+    void updateBook_shouldThrow_whenNotFound() {
+        when(bookRepository.findById("999")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class,
+                () -> bookService.updateBook("999", book));
+    }
+
+    @Test
+    void updateBook_shouldThrow_whenTotalCopiesZero() {
+        when(bookRepository.findById("1")).thenReturn(Optional.of(book));
+        book.setTotalCopies(0);
+        assertThrows(IllegalArgumentException.class,
+                () -> bookService.updateBook("1", book));
+    }
+
+    // ===== deleteBook =====
+
+    @Test
+    void deleteBook_shouldDelete_whenExists() {
+        when(bookRepository.existsById("1")).thenReturn(true);
+        doNothing().when(bookRepository).deleteById("1");
+        bookService.deleteBook("1");
+        verify(bookRepository).deleteById("1");
+    }
+
+    @Test
+    void deleteBook_shouldThrow_whenNotFound() {
+        when(bookRepository.existsById("999")).thenReturn(false);
+        assertThrows(IllegalArgumentException.class,
+                () -> bookService.deleteBook("999"));
+    }
+
+    // ===== decreaseAvailableCopies / increaseAvailableCopies =====
 
     @Test
     void decreaseAvailableCopies_shouldCallPort() {
@@ -109,61 +201,4 @@ class BookServiceTest {
         assertThrows(IllegalStateException.class,
                 () -> bookService.increaseAvailableCopies("1"));
     }
-
-    @Test
-    void addBook_shouldSetDefaultValues_whenNullFields() {
-        book.setAddedToCatalogDate(null);
-        book.setAvailabilityStatus(null);
-        when(bookRepository.save(any(Book.class))).thenReturn(book);
-        Book result = bookService.addBook(book);
-        assertNotNull(result);
-        verify(bookRepository).save(any(Book.class));
-    }
-
-    @Test
-    void updateBook_shouldUpdateAndReturn() {
-        when(bookRepository.findById("1")).thenReturn(Optional.of(book));
-        when(bookRepository.save(any(Book.class))).thenReturn(book);
-        Book result = bookService.updateBook("1", book);
-        assertNotNull(result);
-        verify(bookRepository).save(any(Book.class));
-    }
-
-    @Test
-    void updateBook_shouldThrow_whenNotFound() {
-        when(bookRepository.findById("999")).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class,
-                () -> bookService.updateBook("999", book));
-    }
-
-    @Test
-    void updateBook_shouldThrow_whenTotalCopiesZero() {
-        when(bookRepository.findById("1")).thenReturn(Optional.of(book));
-        book.setTotalCopies(0);
-        assertThrows(IllegalArgumentException.class,
-                () -> bookService.updateBook("1", book));
-    }
-
-    @Test
-    void deleteBook_shouldDelete_whenExists() {
-        when(bookRepository.existsById("1")).thenReturn(true);
-        doNothing().when(bookRepository).deleteById("1");
-        bookService.deleteBook("1");
-        verify(bookRepository).deleteById("1");
-    }
-
-    @Test
-    void deleteBook_shouldThrow_whenNotFound() {
-        when(bookRepository.existsById("999")).thenReturn(false);
-        assertThrows(IllegalArgumentException.class,
-                () -> bookService.deleteBook("999"));
-    }
-
-    @Test
-    void getAvailableBooks_shouldReturnList() {
-        when(bookRepository.findAvailable()).thenReturn(List.of(book));
-        List<Book> result = bookService.getAvailableBooks();
-        assertEquals(1, result.size());
-    }
-
 }

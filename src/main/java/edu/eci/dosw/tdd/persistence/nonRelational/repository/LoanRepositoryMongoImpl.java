@@ -47,6 +47,13 @@ public class LoanRepositoryMongoImpl implements LoanRepositoryPort {
     }
 
     @Override
+    public List<Loan> findByUserIdAndStatus(String userId, LoanStatus status) {
+        return repository.findByUserIdAndStatus(userId, status.name()).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<Loan> findActiveLoanByBookAndUser(String bookId, String userId) {
         return repository.findByBookSnapshot_BookIdAndUserIdAndStatus(
                         bookId, userId, LoanStatus.ACTIVE.name())
@@ -56,7 +63,7 @@ public class LoanRepositoryMongoImpl implements LoanRepositoryPort {
     @Override
     public void markAsReturned(String bookId, String userId) {
         repository.findByBookSnapshot_BookIdAndUserIdAndStatus(
-                        bookId, userId, LoanStatus.ACTIVE.name())
+                        bookId, userId, LoanStatus.ACCEPTED.name())
                 .ifPresent(doc -> {
                     doc.setStatus(LoanStatus.RETURNED.name());
                     doc.setReturnDate(LocalDate.now().atStartOfDay());
@@ -67,5 +74,19 @@ public class LoanRepositoryMongoImpl implements LoanRepositoryPort {
                     doc.getHistory().add(historyEntry);
                     repository.save(doc);
                 });
+    }
+
+    @Override
+    public List<Loan> findByStatus(LoanStatus status) {
+        return repository.findByStatus(status.name()).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Optional<Loan> findAcceptedLoanByBookAndUser(String bookId, String userId) {
+        return repository.findByBookSnapshot_BookIdAndUserIdAndStatus(
+                        bookId, userId, LoanStatus.ACCEPTED.name())
+                .map(mapper::toDomain);
     }
 }

@@ -36,13 +36,27 @@ public class AuthController {
             throw new IllegalArgumentException("Credenciales inválidas");
 
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
-
         return ResponseEntity.ok(new LoginResponse(token, user.getRole().name(), user.getUsername()));
     }
-    @PostMapping("/register-admin")
-    public ResponseEntity<String> registerAdmin(@Valid @RequestBody UserDTO dto) {
+
+    /**
+     * Cualquier persona puede registrarse como USER.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@Valid @RequestBody UserDTO dto) {
+        dto.setRole("USER");
+        userService.registerUser(UserMapper.toModel(dto));
+        return ResponseEntity.ok("Usuario registrado exitosamente");
+    }
+
+    /**
+     * Un LIBRARIAN puede crear su propio usuario (sin autenticación previa).
+     * No puede crear otros usuarios; eso lo gestiona el ADMIN directamente en Mongo.
+     */
+    @PostMapping("/register-librarian")
+    public ResponseEntity<String> registerLibrarian(@Valid @RequestBody UserDTO dto) {
         dto.setRole("LIBRARIAN");
         userService.registerUser(UserMapper.toModel(dto));
-        return ResponseEntity.ok("Administrador creado exitosamente");
+        return ResponseEntity.ok("Bibliotecario registrado exitosamente");
     }
 }

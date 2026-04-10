@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,7 +32,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // Si no hay header, continúa sin autenticar (Spring Security decidirá)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -38,7 +39,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        // Si el token es inválido, retorna 401 inmediatamente
         if (!jwtService.isTokenValid(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
@@ -49,12 +49,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(token);
         String role = jwtService.extractRole(token);
 
-        // Solo autentica si el contexto está vacío
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            UserDetails userDetails = User.builder()
+                    .username(username)
+                    .password("") // no se usa para validación aquí
+                    .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + role)))
+                    .build();
+
             var auth = new UsernamePasswordAuthenticationToken(
-                    username,
+                    userDetails,          // ← principal es UserDetails, no String
                     null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                    userDetails.getAuthorities()
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
